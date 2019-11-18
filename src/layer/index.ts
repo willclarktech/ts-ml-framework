@@ -1,5 +1,5 @@
-import { ActivatedLayer, ActivationVector, BackpropagatedLayer, LayerKind, DeltaVector } from "./base";
-export { ActivatedLayer, Activation, ActivationVector, BackpropagatedLayer, LayerKind } from "./base";
+import { ActivatedLayer, ActivationVector, Alpha, BackpropagatedLayer, LayerKind } from "./base";
+export { ActivatedLayer, Activation, ActivationVector, Alpha, BackpropagatedLayer, LayerKind } from "./base";
 import {
 	activateCostLayer,
 	backpropagateCostLayer,
@@ -134,7 +134,7 @@ export const backpropagateLayer = (
 	throw new Error("Cannot backpropagate layer of unknown kind");
 };
 
-export const updateLayer = (
+export const updateLayer = (alpha: Alpha) => (
 	layer: Layer & BackpropagatedLayer,
 	subsequentLayers: readonly (Layer & BackpropagatedLayer)[],
 ): Layer => {
@@ -143,7 +143,7 @@ export const updateLayer = (
 			return updateInputLayer(layer);
 		case LayerKind.Linear: {
 			const nextLayerDeltas = subsequentLayers[0]?.deltas;
-			return updateLinearLayer(layer, nextLayerDeltas);
+			return updateLinearLayer(layer, nextLayerDeltas, alpha);
 		}
 		case LayerKind.NonLinear:
 			return updateNonLinearLayer(layer);

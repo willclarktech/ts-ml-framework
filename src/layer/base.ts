@@ -35,3 +35,5 @@ export interface BackpropagatedLayer extends ActivatedLayer {
 export interface BaseLayerSpecification {
 	readonly kind: LayerKind;
 }
+
+export type Alpha = number;

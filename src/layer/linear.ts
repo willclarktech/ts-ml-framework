@@ -1,20 +1,21 @@
-import { multiply, sum, transpose, Vector, subtract } from "../maths";
+import { multiply, sum, transpose, Vector } from "../maths";
 import { getRandomNumber, zipWith } from "../utils";
 import {
 	ActivatedLayer,
+	Activation,
 	ActivationVector,
+	Alpha,
 	BackpropagatedLayer,
 	BaseLayer,
 	BaseLayerSpecification,
 	Bias,
 	BiasVector,
+	Delta,
+	DeltaVector,
 	LayerKind,
+	Weight,
 	WeightMatrix,
 	WeightVector,
-	Delta,
-	Weight,
-	Activation,
-	DeltaVector,
 } from "./base";
 
 export interface LinearLayer extends BaseLayer {
@@ -78,28 +79,30 @@ export const backpropagateLinearLayer = (
 };
 
 const updateWeights = (
+	alpha: Alpha,
 	deltas: Vector,
 	weightMatrix: WeightMatrix,
 	inputs: ActivationVector,
 ): WeightMatrix => {
 	return zipWith(
 		(delta: Delta, weights: WeightVector) =>
-			zipWith((weight: Weight, input: Activation) => weight - input * delta, weights, inputs),
+			zipWith((weight: Weight, input: Activation) => weight - input * delta * alpha, weights, inputs),
 		deltas,
 		weightMatrix,
 	);
 };
 
-const updateBiases = (deltas: Vector, biases: BiasVector): BiasVector => {
-	return zipWith(subtract, biases, deltas);
+const updateBiases = (alpha: Alpha, deltas: Vector, biases: BiasVector): BiasVector => {
+	return zipWith((bias: Bias, delta: Delta) => bias - delta * alpha, biases, deltas);
 };
 
 export const updateLinearLayer = (
 	{ kind, width, weights, biases, inputs }: LinearLayer & BackpropagatedLayer,
 	deltas: DeltaVector,
+	alpha: Alpha,
 ): LinearLayer => ({
 	kind,
 	width,
-	weights: updateWeights(deltas, weights, inputs),
-	biases: updateBiases(deltas, biases),
+	weights: updateWeights(alpha, deltas, weights, inputs),
+	biases: updateBiases(alpha, deltas, biases),
 });
