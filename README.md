@@ -1,1 +1,1 @@
-# Typescript Machine Learning Framework
+# TypeScript Machine Learning Framework
