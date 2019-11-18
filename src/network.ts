@@ -2,6 +2,7 @@ import {
 	ActivatedLayer,
 	activateLayer,
 	ActivationVector,
+	Alpha,
 	BackpropagatedLayer,
 	backpropagateLayer,
 	createLayer,
@@ -74,14 +75,19 @@ export const backpropagateNetwork = (network: ActivatedNetwork): BackpropagatedN
 	layers: [...network.layers].reverse().reduce(backpropagateNextLayer, []),
 });
 
-const updateNextLayer = (
+const updateNextLayer = (alpha: Alpha) => (
 	updatedLayers: readonly Layer[],
 	nextLayer: Layer & BackpropagatedLayer,
 	i: number,
 	backpropagatedLayers: readonly (Layer & BackpropagatedLayer)[],
-): readonly Layer[] => [...updatedLayers, updateLayer(nextLayer, backpropagatedLayers.slice(i + 1))];
+): readonly Layer[] => [...updatedLayers, updateLayer(alpha)(nextLayer, backpropagatedLayers.slice(i + 1))];
 
-export const updateNetwork = (network: BackpropagatedNetwork): Network => ({
-	...network,
-	layers: [...network.layers].reduce(updateNextLayer, []),
-});
+export const updateNetwork = (alpha: Alpha = 1) => (network: BackpropagatedNetwork): Network => {
+	if (alpha <= 0) {
+		throw new Error("Cannot update network with alpha <= 0");
+	}
+	return {
+		...network,
+		layers: [...network.layers].reduce(updateNextLayer(alpha), []),
+	};
+};
