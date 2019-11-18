@@ -1,8 +1,10 @@
 export type Activation = number;
 export type ActivationVector = readonly Activation[];
+export type ActivationVectorBatch = readonly ActivationVector[];
 
 export type Delta = number;
 export type DeltaVector = readonly Delta[];
+export type DeltaVectorBatch = readonly DeltaVector[];
 
 export type Weight = number;
 export type WeightVector = readonly Weight[];
@@ -24,12 +26,12 @@ export interface BaseLayer {
 }
 
 export interface ActivatedLayer extends BaseLayer {
-	readonly inputs: ActivationVector;
-	readonly activations: ActivationVector;
+	readonly inputsBatch: ActivationVectorBatch;
+	readonly activationsBatch: ActivationVectorBatch;
 }
 
 export interface BackpropagatedLayer extends ActivatedLayer {
-	readonly deltas: DeltaVector;
+	readonly deltasBatch: DeltaVectorBatch;
 }
 
 export interface BaseLayerSpecification {

@@ -1,7 +1,8 @@
 import { CostFunction, costFunctionMap, CostFunctionName } from "../maths";
+import { zipWith } from "../utils";
 import {
 	ActivatedLayer,
-	ActivationVector,
+	ActivationVectorBatch,
 	BackpropagatedLayer,
 	BaseLayer,
 	BaseLayerSpecification,
@@ -11,7 +12,7 @@ import {
 export interface CostLayer extends BaseLayer {
 	readonly kind: LayerKind.Cost;
 	readonly fn: CostFunction;
-	readonly expectedInputs?: ActivationVector;
+	readonly expectedInputsBatch?: ActivationVectorBatch;
 }
 
 export interface CostLayerSpecification extends BaseLayerSpecification {
@@ -31,18 +32,19 @@ export const createCostLayer = ({ fn }: CostLayerSpecification): CostLayer => {
 };
 
 export const activateCostLayer = (
-	expectedInputs: ActivationVector,
-	inputs: ActivationVector,
+	expectedInputsBatch: ActivationVectorBatch,
+	inputsBatch: ActivationVectorBatch,
 	layer: CostLayer,
 ): CostLayer & ActivatedLayer => {
-	if (expectedInputs.length !== inputs.length) {
-		throw new Error("Cannot activate cost layer with mismatching expected inputs and inputs");
-	}
 	return {
 		...layer,
-		expectedInputs,
-		inputs,
-		activations: [layer.fn.calculate(expectedInputs, inputs)],
+		expectedInputsBatch,
+		inputsBatch,
+		activationsBatch: zipWith(
+			(expectedInputs, inputs) => [layer.fn.calculate(expectedInputs, inputs)],
+			expectedInputsBatch,
+			inputsBatch,
+		),
 	};
 };
 
@@ -53,12 +55,16 @@ export const backpropagateCostLayer = (
 	if (subsequentLayers.length) {
 		throw new Error("Cannot backpropagate cost layer with subsequent layers");
 	}
-	if (!layer.expectedInputs) {
+	if (!layer.expectedInputsBatch) {
 		throw new Error("Cannot backpropagate cost layer without expected inputs");
 	}
 	return {
 		...layer,
-		deltas: layer.fn.derivative(layer.expectedInputs, layer.inputs),
+		deltasBatch: zipWith(
+			(expectedInputs, inputs) => layer.fn.derivative(expectedInputs, inputs),
+			layer.expectedInputsBatch,
+			layer.inputsBatch,
+		),
 	};
 };
 

@@ -1,4 +1,5 @@
 import {
+	Matrix,
 	NormalisationFunction,
 	normalisationFunctionMap,
 	NormalisationFunctionName,
@@ -9,11 +10,12 @@ import {
 import { zipWith } from "../utils";
 import {
 	ActivatedLayer,
-	ActivationVector,
+	ActivationVectorBatch,
 	BackpropagatedLayer,
 	BaseLayer,
 	BaseLayerSpecification,
 	Delta,
+	DeltaVector,
 	LayerKind,
 } from "./base";
 
@@ -39,12 +41,12 @@ export const createNormalisationLayer = ({ fn }: NormalisationLayerSpecification
 };
 
 export const activateNormalisationLayer = (
-	inputs: ActivationVector,
+	inputsBatch: ActivationVectorBatch,
 	layer: NormalisationLayer,
 ): NormalisationLayer & ActivatedLayer => ({
 	...layer,
-	inputs,
-	activations: layer.fn.calculate(inputs),
+	inputsBatch,
+	activationsBatch: inputsBatch.map(inputs => layer.fn.calculate(inputs)),
 });
 
 export const backpropagateNormalisationLayer = (
@@ -54,17 +56,24 @@ export const backpropagateNormalisationLayer = (
 	if (!subsequentLayer) {
 		throw new Error("Cannot backpropagate normalisation layer without subsequent layer");
 	}
-	const derivativesMatrix = layer.fn.derivativeInTermsOfOutput
-		? layer.fn.derivativeInTermsOfOutput(layer.activations)
-		: layer.fn.derivative(layer.inputs);
-	const weightedDerivativesMatrix = zipWith(
-		(delta: Delta, derivatives: Vector) => derivatives.map(derivative => derivative * delta),
-		subsequentLayer.deltas,
-		derivativesMatrix,
+	const derivativesMatrices = layer.fn.derivativeInTermsOfOutput
+		? layer.activationsBatch.map(layer.fn.derivativeInTermsOfOutput)
+		: layer.inputsBatch.map(layer.fn.derivative);
+	const weightedDerivativesMatrices = zipWith(
+		(derivativesMatrix: Matrix, deltas: DeltaVector) =>
+			zipWith(
+				(delta: Delta, derivatives: Vector) => derivatives.map(derivative => derivative * delta),
+				deltas,
+				derivativesMatrix,
+			),
+		derivativesMatrices,
+		subsequentLayer.deltasBatch,
 	);
 	return {
 		...layer,
-		deltas: transpose(weightedDerivativesMatrix).map(sum),
+		deltasBatch: weightedDerivativesMatrices.map(weightedDerivativesMatrix =>
+			transpose(weightedDerivativesMatrix).map(sum),
+		),
 	};
 };
 

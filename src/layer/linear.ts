@@ -1,9 +1,9 @@
-import { multiply, sum, transpose, Vector } from "../maths";
-import { getRandomNumber, zipWith } from "../utils";
+import { Matrix, multiply, subtract, sum, transpose, Vector } from "../maths";
+import { getRandomNumber, zip, zipWith } from "../utils";
 import {
 	ActivatedLayer,
 	Activation,
-	ActivationVector,
+	ActivationVectorBatch,
 	Alpha,
 	BackpropagatedLayer,
 	BaseLayer,
@@ -11,9 +11,8 @@ import {
 	Bias,
 	BiasVector,
 	Delta,
-	DeltaVector,
+	DeltaVectorBatch,
 	LayerKind,
-	Weight,
 	WeightMatrix,
 	WeightVector,
 } from "./base";
@@ -48,15 +47,17 @@ export const createLinearLayer = (
 };
 
 export const activateLinearLayer = (
-	inputs: ActivationVector,
+	inputsBatch: ActivationVectorBatch,
 	layer: LinearLayer,
 ): LinearLayer & ActivatedLayer => ({
 	...layer,
-	inputs,
-	activations: zipWith(
-		(ws: WeightVector, bias: Bias) => sum(zipWith(multiply, ws, inputs)) + bias,
-		layer.weights,
-		layer.biases,
+	inputsBatch,
+	activationsBatch: inputsBatch.map(inputs =>
+		zipWith(
+			(ws: WeightVector, bias: Bias) => sum(zipWith(multiply, ws, inputs)) + bias,
+			layer.weights,
+			layer.biases,
+		),
 	),
 });
 
@@ -67,42 +68,64 @@ export const backpropagateLinearLayer = (
 	if (!subsequentLayer) {
 		throw new Error("Cannot backpropagate linear layer without subsequent layer");
 	}
-	const weightedDerivativesMatrix = zipWith(
-		(perNodeWeights, delta) => perNodeWeights.map(weight => weight * delta),
-		layer.weights,
-		subsequentLayer.deltas,
+	const weightedDerivativesMatrices = subsequentLayer.deltasBatch.map(deltas =>
+		zipWith((perNodeWeights, delta) => perNodeWeights.map(weight => weight * delta), layer.weights, deltas),
 	);
 	return {
 		...layer,
-		deltas: transpose(weightedDerivativesMatrix).map(sum),
+		deltasBatch: weightedDerivativesMatrices.map(weightedDerivativesMatrix =>
+			transpose(weightedDerivativesMatrix).map(sum),
+		),
 	};
 };
 
-const updateWeights = (
+const updateWeightsForBatch = (
 	alpha: Alpha,
-	deltas: Vector,
+	deltasBatch: DeltaVectorBatch,
 	weightMatrix: WeightMatrix,
-	inputs: ActivationVector,
+	inputsBatch: ActivationVectorBatch,
 ): WeightMatrix => {
+	const nullWeightUpdates = [...new Array(weightMatrix.length)].map(() =>
+		new Array(weightMatrix[0].length).fill(0),
+	);
+	const weightUpdates: readonly (readonly number[])[] = zip(deltasBatch, inputsBatch).reduce(
+		(updatesMatrix: Matrix, [deltas, inputs]) =>
+			zipWith(
+				(delta: Delta, updates: Vector) =>
+					zipWith((update: number, input: Activation) => update + input * delta * alpha, updates, inputs),
+				deltas,
+				updatesMatrix,
+			),
+		nullWeightUpdates,
+	);
 	return zipWith(
-		(delta: Delta, weights: WeightVector) =>
-			zipWith((weight: Weight, input: Activation) => weight - input * delta * alpha, weights, inputs),
-		deltas,
+		(weights, updates) => zipWith((weight, update) => weight - update, weights, updates),
 		weightMatrix,
+		weightUpdates,
 	);
 };
 
-const updateBiases = (alpha: Alpha, deltas: Vector, biases: BiasVector): BiasVector => {
-	return zipWith((bias: Bias, delta: Delta) => bias - delta * alpha, biases, deltas);
+const updateBiasesForBatch = (
+	alpha: Alpha,
+	deltasBatch: DeltaVectorBatch,
+	biases: BiasVector,
+): BiasVector => {
+	const nullBiasUpdates = new Array(biases.length).fill(0);
+	const biasUpdates: readonly number[] = deltasBatch.reduce(
+		(updates: readonly number[], deltas: readonly number[]) =>
+			zipWith((update, delta) => update + delta * alpha, updates, deltas),
+		nullBiasUpdates,
+	);
+	return zipWith(subtract, biases, biasUpdates);
 };
 
 export const updateLinearLayer = (
-	{ kind, width, weights, biases, inputs }: LinearLayer & BackpropagatedLayer,
-	deltas: DeltaVector,
+	{ kind, width, weights, biases, inputsBatch }: LinearLayer & BackpropagatedLayer,
+	deltasBatch: DeltaVectorBatch,
 	alpha: Alpha,
 ): LinearLayer => ({
 	kind,
 	width,
-	weights: updateWeights(alpha, deltas, weights, inputs),
-	biases: updateBiases(alpha, deltas, biases),
+	weights: updateWeightsForBatch(alpha, deltasBatch, weights, inputsBatch),
+	biases: updateBiasesForBatch(alpha, deltasBatch, biases),
 });

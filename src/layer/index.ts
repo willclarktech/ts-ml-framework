@@ -1,5 +1,12 @@
-import { ActivatedLayer, ActivationVector, Alpha, BackpropagatedLayer, LayerKind } from "./base";
-export { ActivatedLayer, Activation, ActivationVector, Alpha, BackpropagatedLayer, LayerKind } from "./base";
+import { ActivatedLayer, ActivationVectorBatch, Alpha, BackpropagatedLayer, LayerKind } from "./base";
+export {
+	ActivatedLayer,
+	ActivationVector,
+	ActivationVectorBatch,
+	Alpha,
+	BackpropagatedLayer,
+	LayerKind,
+} from "./base";
 import {
 	activateCostLayer,
 	backpropagateCostLayer,
@@ -96,8 +103,8 @@ export const createLayer = (specification: LayerSpecification, previousLayers: r
 };
 
 export const activateLayer = (
-	expectedOutputs: ActivationVector,
-	inputs: ActivationVector,
+	expectedOutputs: ActivationVectorBatch,
+	inputs: ActivationVectorBatch,
 	layer: Layer,
 ): Layer & ActivatedLayer => {
 	switch (layer.kind) {
@@ -142,7 +149,7 @@ export const updateLayer = (alpha: Alpha) => (
 		case LayerKind.Input:
 			return updateInputLayer(layer);
 		case LayerKind.Linear: {
-			const nextLayerDeltas = subsequentLayers[0]?.deltas;
+			const nextLayerDeltas = subsequentLayers[0].deltasBatch;
 			return updateLinearLayer(layer, nextLayerDeltas, alpha);
 		}
 		case LayerKind.NonLinear:

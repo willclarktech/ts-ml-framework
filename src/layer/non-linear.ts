@@ -1,11 +1,12 @@
-import { multiply, NonLinearFunction, nonLinearFunctionMap, NonLinearFunctionName } from "../maths";
+import { multiply, NonLinearFunction, nonLinearFunctionMap, NonLinearFunctionName, Vector } from "../maths";
 import { zipWith } from "../utils";
 import {
 	ActivatedLayer,
-	ActivationVector,
+	ActivationVectorBatch,
 	BackpropagatedLayer,
 	BaseLayer,
 	BaseLayerSpecification,
+	DeltaVector,
 	LayerKind,
 } from "./base";
 
@@ -31,12 +32,12 @@ export const createNonLinearLayer = ({ fn }: NonLinearLayerSpecification): NonLi
 };
 
 export const activateNonLinearLayer = (
-	inputs: ActivationVector,
+	inputsBatch: ActivationVectorBatch,
 	layer: NonLinearLayer,
 ): NonLinearLayer & ActivatedLayer => ({
 	...layer,
-	inputs,
-	activations: inputs.map(layer.fn.calculate),
+	inputsBatch,
+	activationsBatch: inputsBatch.map(inputs => inputs.map(layer.fn.calculate)),
 });
 
 export const backpropagateNonLinearLayer = (
@@ -46,12 +47,17 @@ export const backpropagateNonLinearLayer = (
 	if (!subsequentLayer) {
 		throw new Error("Cannot backpropagate non-linear layer without subsequent layer");
 	}
-	const derivatives = layer.fn.derivativeInTermsOfOutput
-		? layer.activations.map(layer.fn.derivativeInTermsOfOutput)
-		: layer.inputs.map(layer.fn.derivative);
+	const { derivativeInTermsOfOutput } = layer.fn;
+	const derivativesBatch = derivativeInTermsOfOutput
+		? layer.activationsBatch.map(activations => activations.map(derivativeInTermsOfOutput))
+		: layer.inputsBatch.map(inputs => inputs.map(layer.fn.derivative));
 	return {
 		...layer,
-		deltas: zipWith(multiply, subsequentLayer.deltas, derivatives),
+		deltasBatch: zipWith(
+			(deltas: DeltaVector, derivatives: Vector) => zipWith(multiply, deltas, derivatives),
+			subsequentLayer.deltasBatch,
+			derivativesBatch,
+		),
 	};
 };
 
