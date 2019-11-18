@@ -9,6 +9,7 @@ import {
 	isInputLayerSpecification,
 	Layer,
 	LayerSpecification,
+	updateLayer,
 } from "./layer";
 
 export interface Network {
@@ -71,4 +72,16 @@ const backpropagateNextLayer = (
 export const backpropagateNetwork = (network: ActivatedNetwork): BackpropagatedNetwork => ({
 	...network,
 	layers: [...network.layers].reverse().reduce(backpropagateNextLayer, []),
+});
+
+const updateNextLayer = (
+	updatedLayers: readonly Layer[],
+	nextLayer: Layer & BackpropagatedLayer,
+	i: number,
+	backpropagatedLayers: readonly (Layer & BackpropagatedLayer)[],
+): readonly Layer[] => [...updatedLayers, updateLayer(nextLayer, backpropagatedLayers.slice(i + 1))];
+
+export const updateNetwork = (network: BackpropagatedNetwork): Network => ({
+	...network,
+	layers: [...network.layers].reduce(updateNextLayer, []),
 });
