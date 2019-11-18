@@ -10,8 +10,12 @@ const squaredErrorCalculate = (expectedInput: number, input: number): number => 
 const squaredErrorDerivative = (expectedInput: number, input: number): number => 2 * (input - expectedInput);
 
 const meanSquaredError: CostFunction = {
-	calculate: (expectedInputs: Vector, inputs: Vector) =>
-		mean(zipWith(squaredErrorCalculate, expectedInputs, inputs)),
+	calculate: (expectedInputs: Vector, inputs: Vector) => {
+		if (expectedInputs.length !== inputs.length) {
+			throw new Error("Cannot calculate cost with inputs/expected inputs of different lengths");
+		}
+		return mean(zipWith(squaredErrorCalculate, expectedInputs, inputs));
+	},
 	derivative: (expectedInputs: Vector, inputs: Vector) =>
 		zipWith(squaredErrorDerivative, expectedInputs, inputs),
 };
