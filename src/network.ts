@@ -2,6 +2,7 @@ import {
 	ActivatedLayer,
 	activateLayer,
 	ActivationVector,
+	ActivationVectorBatch,
 	Alpha,
 	BackpropagatedLayer,
 	backpropagateLayer,
@@ -12,6 +13,7 @@ import {
 	LayerSpecification,
 	updateLayer,
 } from "./layer";
+import { unzip } from "./utils";
 
 export interface Network {
 	readonly layers: readonly Layer[];
@@ -24,6 +26,9 @@ export interface ActivatedNetwork extends Network {
 export interface BackpropagatedNetwork extends Network {
 	readonly layers: readonly (Layer & BackpropagatedLayer)[];
 }
+
+// [expectedOutput, input]
+export type Batch = readonly [ActivationVector, ActivationVector][];
 
 const createNextLayer = (
 	previousLayers: readonly Layer[],
@@ -44,23 +49,28 @@ export const createNetwork = (specifications: readonly LayerSpecification[]): Ne
 	return { layers };
 };
 
-const activateNextLayer = (expectedOutputs: ActivationVector, inputs: ActivationVector) => (
+const activateNextLayer = (expectedOutputs: ActivationVectorBatch, inputs: ActivationVectorBatch) => (
 	previousLayers: readonly (Layer & ActivatedLayer)[],
 	nextLayer: Layer,
 ): readonly (Layer & ActivatedLayer)[] => {
-	const outputs = previousLayers.length ? previousLayers[previousLayers.length - 1].activations : inputs;
+	const outputs = previousLayers.length ? previousLayers[previousLayers.length - 1].activationsBatch : inputs;
 	const activatedLayer = activateLayer(expectedOutputs, outputs, nextLayer);
 	return [...previousLayers, activatedLayer];
 };
 
 export const activateNetwork = (
-	expectedOutputs: ActivationVector,
-	inputs: ActivationVector,
+	expectedOutputs: ActivationVectorBatch,
+	inputs: ActivationVectorBatch,
 	network: Network,
 ): ActivatedNetwork => ({
 	...network,
 	layers: network.layers.reduce(activateNextLayer(expectedOutputs, inputs), []),
 });
+
+export const activateNetworkWithBatch = (batch: Batch, network: Network): ActivatedNetwork => {
+	const [expectedOutputs, inputs] = unzip(batch);
+	return activateNetwork(expectedOutputs, inputs, network);
+};
 
 const backpropagateNextLayer = (
 	subsequentLayers: readonly (Layer & BackpropagatedLayer)[],
