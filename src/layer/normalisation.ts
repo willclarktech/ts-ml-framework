@@ -67,3 +67,11 @@ export const backpropagateNormalisationLayer = (
 		deltas: transpose(weightedDerivativesMatrix).map(sum),
 	};
 };
+
+export const updateNormalisationLayer = ({
+	kind,
+	fn,
+}: NormalisationLayer & BackpropagatedLayer): NormalisationLayer => ({
+	kind,
+	fn,
+});

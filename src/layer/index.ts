@@ -1,4 +1,4 @@
-import { ActivatedLayer, ActivationVector, BackpropagatedLayer, LayerKind } from "./base";
+import { ActivatedLayer, ActivationVector, BackpropagatedLayer, LayerKind, DeltaVector } from "./base";
 export { ActivatedLayer, Activation, ActivationVector, BackpropagatedLayer, LayerKind } from "./base";
 import {
 	activateCostLayer,
@@ -6,6 +6,7 @@ import {
 	CostLayer,
 	CostLayerSpecification,
 	createCostLayer,
+	updateCostLayer,
 } from "./cost";
 import {
 	activateInputLayer,
@@ -13,6 +14,7 @@ import {
 	createInputLayer,
 	InputLayer,
 	InputLayerSpecification,
+	updateInputLayer,
 } from "./input";
 import {
 	activateLinearLayer,
@@ -20,6 +22,7 @@ import {
 	createLinearLayer,
 	LinearLayer,
 	LinearLayerSpecification,
+	updateLinearLayer,
 } from "./linear";
 import {
 	activateNonLinearLayer,
@@ -27,6 +30,7 @@ import {
 	createNonLinearLayer,
 	NonLinearLayer,
 	NonLinearLayerSpecification,
+	updateNonLinearLayer,
 } from "./non-linear";
 import {
 	activateNormalisationLayer,
@@ -34,6 +38,7 @@ import {
 	createNormalisationLayer,
 	NormalisationLayer,
 	NormalisationLayerSpecification,
+	updateNormalisationLayer,
 } from "./normalisation";
 
 export type LayerSpecification =
@@ -112,7 +117,7 @@ export const activateLayer = (
 
 export const backpropagateLayer = (
 	layer: Layer & ActivatedLayer,
-	subsequentLayers: readonly BackpropagatedLayer[],
+	subsequentLayers: readonly (Layer & BackpropagatedLayer)[],
 ): Layer & BackpropagatedLayer => {
 	switch (layer.kind) {
 		case LayerKind.Input:
@@ -127,4 +132,25 @@ export const backpropagateLayer = (
 			return backpropagateCostLayer(layer, subsequentLayers);
 	}
 	throw new Error("Cannot backpropagate layer of unknown kind");
+};
+
+export const updateLayer = (
+	layer: Layer & BackpropagatedLayer,
+	subsequentLayers: readonly (Layer & BackpropagatedLayer)[],
+): Layer => {
+	switch (layer.kind) {
+		case LayerKind.Input:
+			return updateInputLayer(layer);
+		case LayerKind.Linear: {
+			const nextLayerDeltas = subsequentLayers[0]?.deltas;
+			return updateLinearLayer(layer, nextLayerDeltas);
+		}
+		case LayerKind.NonLinear:
+			return updateNonLinearLayer(layer);
+		case LayerKind.Normalisation:
+			return updateNormalisationLayer(layer);
+		case LayerKind.Cost:
+			return updateCostLayer(layer);
+	}
+	throw new Error("Cannot update layer of unknown kind");
 };

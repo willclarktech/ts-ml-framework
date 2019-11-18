@@ -54,3 +54,8 @@ export const backpropagateNonLinearLayer = (
 		deltas: zipWith(multiply, subsequentLayer.deltas, derivatives),
 	};
 };
+
+export const updateNonLinearLayer = ({ kind, fn }: NonLinearLayer & BackpropagatedLayer): NonLinearLayer => ({
+	kind,
+	fn,
+});

@@ -34,12 +34,17 @@ export const activateCostLayer = (
 	expectedInputs: ActivationVector,
 	inputs: ActivationVector,
 	layer: CostLayer,
-): CostLayer & ActivatedLayer => ({
-	...layer,
-	expectedInputs,
-	inputs,
-	activations: [layer.fn.calculate(expectedInputs, inputs)],
-});
+): CostLayer & ActivatedLayer => {
+	if (expectedInputs.length !== inputs.length) {
+		throw new Error("Cannot activate cost layer with mismatching expected inputs and inputs");
+	}
+	return {
+		...layer,
+		expectedInputs,
+		inputs,
+		activations: [layer.fn.calculate(expectedInputs, inputs)],
+	};
+};
 
 export const backpropagateCostLayer = (
 	layer: CostLayer & ActivatedLayer,
@@ -56,3 +61,8 @@ export const backpropagateCostLayer = (
 		deltas: layer.fn.derivative(layer.expectedInputs, layer.inputs),
 	};
 };
+
+export const updateCostLayer = ({ kind, fn }: CostLayer & BackpropagatedLayer): CostLayer => ({
+	kind,
+	fn,
+});

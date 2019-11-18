@@ -25,11 +25,16 @@ export const createInputLayer = ({ width }: InputLayerSpecification): InputLayer
 export const activateInputLayer = (
 	inputs: ActivationVector,
 	layer: InputLayer,
-): InputLayer & ActivatedLayer => ({
-	...layer,
-	inputs,
-	activations: inputs,
-});
+): InputLayer & ActivatedLayer => {
+	if (inputs.length !== layer.width) {
+		throw new Error("Cannot activate input layer with incorrect input width");
+	}
+	return {
+		...layer,
+		inputs,
+		activations: inputs,
+	};
+};
 
 export const backpropagateInputLayer = (
 	layer: InputLayer & ActivatedLayer,
@@ -43,3 +48,8 @@ export const backpropagateInputLayer = (
 		deltas: subsequentLayer.deltas,
 	};
 };
+
+export const updateInputLayer = ({ kind, width }: InputLayer & BackpropagatedLayer): InputLayer => ({
+	kind,
+	width,
+});

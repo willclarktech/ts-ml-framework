@@ -28,7 +28,7 @@ export interface ActivatedLayer extends BaseLayer {
 	readonly activations: ActivationVector;
 }
 
-export interface BackpropagatedLayer extends BaseLayer {
+export interface BackpropagatedLayer extends ActivatedLayer {
 	readonly deltas: DeltaVector;
 }
 
