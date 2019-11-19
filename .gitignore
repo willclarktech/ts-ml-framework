@@ -21,3 +21,6 @@ tmp/
 # Build
 build/
 types/
+
+# Data
+data/
