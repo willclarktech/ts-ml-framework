@@ -12,10 +12,10 @@
 		"url": "https://github.com/willclarktech/ts-ml-framework/issues"
 	},
 	"scripts": {
-		"format": "prettier --write {src,test}/**/*.ts",
-		"lint": "eslint '{src,test}/**'",
+		"format": "prettier --write src/**/*.ts",
+		"lint": "eslint 'src/**'",
 		"lint:fix": "yarn lint --fix",
-		"test": "yarn ts-node --project ./tsconfig.test.json test/**",
+		"test": "jest",
 		"prebuild": "yarn lint:fix && yarn format",
 		"build": "tsc"
 	},
