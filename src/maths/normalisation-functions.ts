@@ -6,6 +6,18 @@ export interface NormalisationFunction {
 	readonly derivativeInTermsOfOutput?: (outputs: Vector) => Matrix;
 }
 
+const argmax: NormalisationFunction = {
+	calculate: (inputs: Vector): Vector => {
+		const max = Math.max(...inputs);
+		const nMax = inputs.filter(n => n === max).length;
+		const value = 1 / nMax;
+		return inputs.map(n => (n === max ? value : 0));
+	},
+	derivative: (_inputs: Vector) => {
+		throw new Error("Cannot backpropagate argmax");
+	},
+};
+
 const calculateSoftmax = (inputs: Vector): Vector => {
 	const offset = Math.max(...inputs);
 	const exponents = inputs.map(input => Math.exp(input - offset));
@@ -26,8 +38,9 @@ const softmax: NormalisationFunction = {
 	derivativeInTermsOfOutput: softmaxDerivativeInTermsOfOutput,
 };
 
-export type NormalisationFunctionName = "softmax";
+export type NormalisationFunctionName = "argmax" | "softmax";
 
 export const normalisationFunctionMap = new Map<NormalisationFunctionName, NormalisationFunction>([
+	["argmax", argmax],
 	["softmax", softmax],
 ]);
