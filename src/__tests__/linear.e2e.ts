@@ -3,7 +3,7 @@ import { activateNetwork, createNetwork } from "../network";
 import { getAverageError, train } from "../train";
 import { nest } from "../utils";
 
-const logFrequency = 1;
+const logFrequency = 0;
 
 test("single input, single output: y = 5x + 4", () => {
 	const trainInputs = nest([-5, -3, -1, 1, 3, 5]);
