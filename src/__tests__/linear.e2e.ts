@@ -1,10 +1,9 @@
 import { LayerKind } from "../layer";
 import { activateNetwork, createNetwork } from "../network";
 import { getAverageError, train } from "../train";
+import { nest } from "../utils";
 
 const logFrequency = 1;
-
-const nest = (ns: readonly number[]): readonly (readonly number[])[] => ns.map(n => [n]);
 
 test("single input, single output: y = 5x + 4", () => {
 	const trainInputs = nest([-5, -3, -1, 1, 3, 5]);
