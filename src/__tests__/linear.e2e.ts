@@ -32,3 +32,44 @@ test("single input, single output: y = 5x + 4", () => {
 	const error = getAverageError(tested);
 	expect(error).toBeLessThan(0.01);
 });
+
+test("single input, multi output: y = [5x + 4, 0.2x - 7]", () => {
+	const trainInputs = nest([-5, -3, -1, 1, 3, 5]);
+	const trainOutputs = [
+		[-21, -8],
+		[-11, -7.6],
+		[-1, -7.2],
+		[9, -6.8],
+		[19, -6.4],
+		[29, -6],
+	];
+	const testInputs = nest([-4, -2, 0, 2, 4]);
+	const testOutputs = [
+		[-16, -7.8],
+		[-6, -7.4],
+		[4, -7],
+		[14, -6.6],
+		[24, -6.2],
+	];
+	const specifications = [
+		{
+			kind: LayerKind.Input as const,
+			width: 1,
+		},
+		{
+			kind: LayerKind.Linear as const,
+			width: 2,
+		},
+		{
+			kind: LayerKind.Cost as const,
+			fn: "mean-squared-error" as const,
+		},
+	];
+	const initialNetwork = createNetwork(specifications);
+	const iterations = 50;
+	const alpha = 0.01;
+	const trained = train(initialNetwork, trainOutputs, trainInputs, iterations, alpha, logFrequency);
+	const tested = activateNetwork(testOutputs, testInputs, trained);
+	const error = getAverageError(tested);
+	expect(error).toBeLessThan(0.01);
+});
