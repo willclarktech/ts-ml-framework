@@ -1,20 +1,10 @@
 import { LayerKind } from "../layer";
-import { mean } from "../maths";
-import {
-	ActivatedNetwork,
-	activateNetwork,
-	backpropagateNetwork,
-	createNetwork,
-	Network,
-	updateNetwork,
-} from "../network";
+import { activateNetwork, createNetwork } from "../network";
+import { getAverageError, train } from "../train";
 
-const logFrequeney = 1;
+const logFrequency = 1;
 
 const nest = (ns: readonly number[]): readonly (readonly number[])[] => ns.map(n => [n]);
-
-const getAverageError = (network: ActivatedNetwork): number =>
-	mean(network.layers[network.layers.length - 1].activationsBatch.map(([error]) => error));
 
 test("single input, single output: y = 5x + 4", () => {
 	const trainInputs = nest([-5, -3, -1, 1, 3, 5]);
@@ -36,17 +26,9 @@ test("single input, single output: y = 5x + 4", () => {
 		},
 	];
 	const initialNetwork = createNetwork(specifications);
-	const iterations = [...new Array(50)];
+	const iterations = 50;
 	const alpha = 0.01;
-	const trained = iterations.reduce((network: Network, _, i: number) => {
-		const activated = activateNetwork(trainOutputs, trainInputs, network);
-		const averageTrainError = getAverageError(activated);
-		if (i % logFrequeney === 0) {
-			console.info(`i: ${i}; err: ${averageTrainError}`);
-		}
-		const backpropagated = backpropagateNetwork(activated);
-		return updateNetwork(alpha)(backpropagated);
-	}, initialNetwork);
+	const trained = train(initialNetwork, trainOutputs, trainInputs, iterations, alpha, logFrequency);
 	const tested = activateNetwork(testOutputs, testInputs, trained);
 	const error = getAverageError(tested);
 	expect(error).toBeLessThan(0.01);
