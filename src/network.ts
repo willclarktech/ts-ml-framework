@@ -28,7 +28,8 @@ export interface BackpropagatedNetwork extends Network {
 }
 
 // [expectedOutput, input]
-export type Batch = readonly [ActivationVector, ActivationVector][];
+export type OutputInputPair = readonly [ActivationVector, ActivationVector];
+export type Batch = readonly OutputInputPair[];
 
 const createNextLayer = (
 	previousLayers: readonly Layer[],
