@@ -1,11 +1,10 @@
 # TODO
 
-- Tests with jest
 - MNIST example
 - Cross entropy
 - Refactor activate/backprop/update in terms of matrix multiplication
+- More unit tests
 - Minibatches
-- Configurable progress logging
 - Combined layers
 - Dropout
 - GAN
