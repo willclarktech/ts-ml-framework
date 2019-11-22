@@ -7,6 +7,9 @@ export const getRandomNumber = (min = -1, max = 1): number => {
 	return seed * range + min;
 };
 
+export const flatten = <T>(array: readonly (readonly T[])[]): readonly T[] =>
+	array.reduce((flattened, next) => [...flattened, ...next], []);
+
 export const nest = (ns: readonly number[]): readonly (readonly number[])[] => ns.map(n => [n]);
 
 export const unzip = <T, U>(zipped: readonly (readonly [T, U])[]): readonly [readonly T[], readonly U[]] =>
