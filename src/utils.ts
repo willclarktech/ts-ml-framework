@@ -1,3 +1,9 @@
+export const createOneHot = (i: number): readonly number[] => [
+	...new Array(i).fill(0),
+	1,
+	...new Array(9 - i).fill(0),
+];
+
 export const getRandomNumber = (min = -1, max = 1): number => {
 	if (max < min) {
 		throw new Error("Max cannot be smaller than min");
