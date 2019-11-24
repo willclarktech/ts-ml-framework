@@ -25,8 +25,10 @@ const calculateSoftmax = (inputs: Vector): Vector => {
 	return exponents.map(exponent => exponent / total);
 };
 
+const kroneckerDelta = (i: number, j: number): number => Number(i === j);
+
 const softmaxDerivativeInTermsOfOutput = (outputs: Vector): Matrix =>
-	outputs.map((output, i) => outputs.map((input, k) => output * ((i === k ? 1 : 0) - input)));
+	outputs.map((output, i) => outputs.map((input, k) => output * (kroneckerDelta(i, k) - input)));
 
 // This is more accurately named "softargmax" but "softmax" is conventional in ML
 const softmax: NormalisationFunction = {
