@@ -2,15 +2,15 @@
 
 ## Datasets/Benchmarks
 
-- MNIST example
+- ...
 
 ## Features
 
 - Minibatches
+- Convolutions
 - Combined layers
 - Dropout
 - GAN
-- Convolutions
 - Momentum
 - LSTM
 - Transformer
