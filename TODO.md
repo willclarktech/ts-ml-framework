@@ -1,7 +1,6 @@
 # TODO
 
 - MNIST example
-- Cross entropy
 - Refactor activate/backprop/update in terms of matrix multiplication
 - More unit tests
 - Minibatches
@@ -12,3 +11,6 @@
 - Momentum
 - LSTM
 - Transformer
+- Refactor function layers not to store copies of functions
+- Impure functions for performance
+- Hyperparameter optimisation
