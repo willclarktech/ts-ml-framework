@@ -19,11 +19,9 @@ export const trainOnce = (
 	inputs: ActivationVectorBatch,
 	alpha: number,
 	logFrequency: number,
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): ((network: Network, _: any, i: number) => Network) => {
+): ((network: Network, _: unknown, i: number) => Network) => {
 	const updateNetworkWithAlpha = updateNetwork(alpha);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return (network: Network, _: any, i: number) => {
+	return (network: Network, _: unknown, i: number) => {
 		const activated = activateNetwork(expectedOutputs, inputs, network);
 		if (i % logFrequency == 0) {
 			const averageTrainError = getAverageError(activated);
@@ -81,8 +79,7 @@ export const trainWithMiniBatches = (
 		miniBatchSize === 0
 			? [zip(expectedOutputs, inputs)]
 			: createMiniBatches(expectedOutputs, inputs, miniBatchSize);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return [...new Array(iterations)].reduce((network: Network, _: any, i) => {
+	return [...new Array(iterations)].reduce((network: Network, _: unknown, i) => {
 		const trained = miniBatches.reduce(trainOnceWithBatch(alpha), network);
 		if (i % logFrequency == 0) {
 			const activated = activateNetwork(expectedOutputs, inputs, trained);
