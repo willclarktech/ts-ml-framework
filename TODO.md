@@ -6,7 +6,6 @@
 
 ## Features
 
-- Minibatches
 - Convolutions
 - Combined layers
 - Dropout
