@@ -1,8 +1,13 @@
-export const createOneHot = (i: number): readonly number[] => [
+export const createOneHot = (i: number, length = 10): readonly number[] => [
 	...new Array(i).fill(0),
 	1,
-	...new Array(9 - i).fill(0),
+	...new Array(length - 1 - i).fill(0),
 ];
+
+export const deepMap = <T, U>(
+	fn: (item: T, i: number, items: readonly T[]) => U,
+	arr: readonly (readonly T[])[],
+): readonly (readonly U[])[] => arr.map(a => a.map(fn));
 
 export const getRandomNumber = (min = -1, max = 1): number => {
 	if (max < min) {
