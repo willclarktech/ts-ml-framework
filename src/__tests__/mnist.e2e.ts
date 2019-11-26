@@ -34,18 +34,6 @@ const loadMnistData = (path: string): Batch => {
 	);
 };
 
-// const printMnistExample = (input: readonly number[]): string => {
-// 	const d = 28;
-// 	return [...new Array(d)]
-// 		.map((_, i) =>
-// 			input
-// 				.slice(i * d, (i + 1) * d)
-// 				.map(n => (n > 127 ? "O" : "."))
-// 				.join(""),
-// 		)
-// 		.join("\n");
-// };
-
 // const trainDataPath = "./data/mnist/train.csv";
 const trainDataPath = "./data/mnist/train.partial.csv";
 const mnistData = loadMnistData(trainDataPath);
