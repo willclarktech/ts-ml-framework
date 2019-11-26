@@ -32,3 +32,10 @@ export const zip = <T, U>(as: readonly T[], bs: readonly U[]): readonly (readonl
 
 export const zipWith = <T, U, V>(fn: (a: T, b: U) => V, as: readonly T[], bs: readonly U[]): readonly V[] =>
 	as.map((a, i) => fn(a, bs[i]));
+
+export const zipWith3 = <T, U, V, W>(
+	fn: (a: T, b: U, c: V) => W,
+	as: readonly T[],
+	bs: readonly U[],
+	cs: readonly V[],
+): readonly W[] => as.map((a, i) => fn(a, bs[i], cs[i]));
