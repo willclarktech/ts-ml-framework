@@ -1,4 +1,4 @@
-import { add, mean, multiply, subtract, sum, transpose } from "../linear";
+import { add, mean, multiply, shapeOf, subtract, sum, transpose } from "../linear";
 
 const MAX_INACCURACY = 1e-8;
 
@@ -30,6 +30,48 @@ test("mean", () => {
 	const result = mean([2.4, 3.8, -8.9]);
 	const diff = Math.abs(result - -0.9);
 	expect(diff).toBeLessThan(MAX_INACCURACY);
+});
+
+describe("shapeOf", () => {
+	test("works for a number", () => {
+		const n = 9;
+		expect(shapeOf(n)).toStrictEqual([]);
+	});
+
+	test("works for a vector", () => {
+		const v = [1, 2, 3];
+		expect(shapeOf(v)).toStrictEqual([3]);
+	});
+
+	test("works for a matrix", () => {
+		const m = [
+			[1, 2, 3],
+			[4, 5, 6],
+		];
+		expect(shapeOf(m)).toStrictEqual([2, 3]);
+	});
+
+	test("works for a higher-order tensor", () => {
+		const m = [
+			[
+				[1, 2, 3],
+				[4, 5, 6],
+			],
+			[
+				[11, 12, 13],
+				[14, 15, 16],
+			],
+			[
+				[21, 22, 23],
+				[24, 25, 26],
+			],
+			[
+				[31, 32, 33],
+				[34, 35, 36],
+			],
+		];
+		expect(shapeOf(m)).toStrictEqual([4, 2, 3]);
+	});
 });
 
 describe("transpose", () => {
