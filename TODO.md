@@ -6,9 +6,10 @@
 
 ## Features
 
-- Convolutions
+- Pooling
 - Combined layers (eg linear+nonlinear, linear+softmax+cross-entropy)
 - Dropout
+- Customisable bias initialisation (eg good to set to 1 when using ReLU)
 - GAN
 - Momentum
 - Weight decay
