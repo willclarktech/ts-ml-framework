@@ -15,6 +15,7 @@ export type BiasVector = readonly Bias[];
 
 export enum LayerKind {
 	Input = "input",
+	Convolutional = "convolutional",
 	Linear = "linear",
 	NonLinear = "non-linear",
 	Normalisation = "normalisation",

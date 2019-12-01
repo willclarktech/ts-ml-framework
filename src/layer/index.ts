@@ -8,6 +8,16 @@ export {
 	LayerKind,
 } from "./base";
 import {
+	activateConvolutionalLayer,
+	ActivatedConvolutionalLayer,
+	backpropagateConvolutionalLayer,
+	BackpropagatedConvolutionalLayer,
+	ConvolutionalLayer,
+	ConvolutionalLayerSpecification,
+	createConvolutionalLayer,
+	updateConvolutionalLayer,
+} from "./convolutional";
+import {
 	activateCostLayer,
 	backpropagateCostLayer,
 	CostLayer,
@@ -50,6 +60,7 @@ import {
 
 export type LayerSpecification =
 	| InputLayerSpecification
+	| ConvolutionalLayerSpecification
 	| LinearLayerSpecification
 	| NonLinearLayerSpecification
 	| NormalisationLayerSpecification
@@ -67,7 +78,13 @@ export const isCostLayerSpecification = (
 	return specification.kind === LayerKind.Cost;
 };
 
-export type Layer = InputLayer | LinearLayer | NonLinearLayer | NormalisationLayer | CostLayer;
+export type Layer =
+	| InputLayer
+	| ConvolutionalLayer
+	| LinearLayer
+	| NonLinearLayer
+	| NormalisationLayer
+	| CostLayer;
 
 export const isInputLayer = (layer: Layer): layer is InputLayer => {
 	return layer.kind === LayerKind.Input;
@@ -88,6 +105,10 @@ export const createLayer = (specification: LayerSpecification, previousLayers: r
 	switch (specification.kind) {
 		case LayerKind.Input:
 			return createInputLayer(specification);
+		case LayerKind.Convolutional: {
+			const previousWidth = getOutputWidth(previousLayers);
+			return createConvolutionalLayer(specification, previousWidth);
+		}
 		case LayerKind.Linear: {
 			const previousWidth = getOutputWidth(previousLayers);
 			return createLinearLayer(specification, previousWidth);
@@ -110,6 +131,8 @@ export const activateLayer = (
 	switch (layer.kind) {
 		case LayerKind.Input:
 			return activateInputLayer(inputs, layer);
+		case LayerKind.Convolutional:
+			return activateConvolutionalLayer(inputs, layer);
 		case LayerKind.Linear:
 			return activateLinearLayer(inputs, layer);
 		case LayerKind.NonLinear:
@@ -129,6 +152,11 @@ export const backpropagateLayer = (
 	switch (layer.kind) {
 		case LayerKind.Input:
 			return backpropagateInputLayer(layer, subsequentLayers);
+		case LayerKind.Convolutional:
+			return backpropagateConvolutionalLayer(
+				layer as ConvolutionalLayer & ActivatedConvolutionalLayer & ActivatedLayer,
+				subsequentLayers,
+			);
 		case LayerKind.Linear:
 			return backpropagateLinearLayer(layer, subsequentLayers);
 		case LayerKind.NonLinear:
@@ -148,6 +176,14 @@ export const updateLayer = (alpha: Alpha) => (
 	switch (layer.kind) {
 		case LayerKind.Input:
 			return updateInputLayer(layer);
+		case LayerKind.Convolutional: {
+			const nextLayerDeltas = subsequentLayers[0].deltasBatch;
+			return updateConvolutionalLayer(
+				layer as ConvolutionalLayer & BackpropagatedConvolutionalLayer & BackpropagatedLayer,
+				nextLayerDeltas,
+				alpha,
+			);
+		}
 		case LayerKind.Linear: {
 			const nextLayerDeltas = subsequentLayers[0].deltasBatch;
 			return updateLinearLayer(layer, nextLayerDeltas, alpha);
