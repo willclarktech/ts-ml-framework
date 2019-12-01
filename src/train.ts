@@ -23,9 +23,9 @@ export const trainOnce = (
 	const updateNetworkWithAlpha = updateNetwork(alpha);
 	return (network: Network, _: unknown, i: number) => {
 		const activated = activateNetwork(expectedOutputs, inputs, network);
-		if (i % logFrequency == 0) {
+		if (i % logFrequency === 0) {
 			const averageTrainError = getAverageError(activated);
-			console.info(`${i}: ${averageTrainError}`);
+			console.info(`${new Date().toLocaleTimeString()} - ${i}: ${averageTrainError}`);
 		}
 		const backpropagated = backpropagateNetwork(activated);
 		return updateNetworkWithAlpha(backpropagated);
@@ -81,10 +81,10 @@ export const trainWithMiniBatches = (
 			: createMiniBatches(expectedOutputs, inputs, miniBatchSize);
 	return [...new Array(iterations)].reduce((network: Network, _: unknown, i) => {
 		const trained = miniBatches.reduce(trainOnceWithBatch(alpha), network);
-		if (i % logFrequency == 0) {
+		if (i % logFrequency === 0) {
 			const activated = activateNetwork(expectedOutputs, inputs, trained);
 			const averageTrainError = getAverageError(activated);
-			console.info(`${i}: ${averageTrainError}`);
+			console.info(`${new Date().toLocaleTimeString()} - ${i}: ${averageTrainError}`);
 		}
 		return trained;
 	}, initialNetwork);
